@@ -5,37 +5,51 @@ import numpy as np
 import streamlit as st
 import tensorflow
 from scipy import ndimage
-from tensorflow import keras
-from tensorflow.keras import layers, Model
-from tensorflow.keras.layers import Conv3D, MaxPool3D, BatchNormalization, GlobalAveragePooling3D, Dense, Dropout
-from tensorflow.python.keras.models import load_model
-
 from gif import core as gif2nif
+import model
+from nilearn import plotting, datasets
+from matplotlib.backends.backend_agg import RendererAgg
+
+from nilearn.regions import RegionExtractor
+from nilearn import plotting
+from nilearn.image import index_img
+from nilearn.plotting import find_xyz_cut_coords
 
 path = 'E:/AD/'
+_lock = RendererAgg.lock
 
 
 def main():
     # SETTING PAGE CONFIG TO WIDE MODE
-    st.set_page_config(layout="wide")
+    st.set_page_config(
+        page_title="Alzheimer's Detection", page_icon='http://clipart-library.com/img/2101816.png',
+        layout="wide"
+    )
 
-    st.sidebar.title("About")
-
-    st.sidebar.info(
-        "This project was built using a Convolution Neural Network (CNN) to classify MRI "
-        "images as normal or abnormal. The trained model used yields an accuracy of 80%"
-        "in the binary classification between Alzheimer's Disease patients and cognitively"
-        "healthy normal control.")
-
-    st.title("Alzheimer's Disease Classification")
+    st.title("Alzheimer's Disease Classification by 3D CNN")
     st.write("Pick an image from the left. You'll be able to view the image and see the prediction.")
-    st.write("Only accepts .nii NIFTI scans.")
-    st.write("")
-    st.sidebar.title("Classification")
-    st.sidebar.write("Choose to classify between Normal Control vs Alzhiemer's Disease"
-                     " or Mild Cognitive Impairment vs Alzeihmer's Disease")
-    st.write("")
-    upload_box("nc_ad")
+    st.write("Only accepts .nii (NIFTI) scans.")
+
+    with st.sidebar:
+        st.info(
+            "This project was built using a Convolution Neural Network (CNN) to classify MRI "
+            "images as normal or abnormal. The trained model used yields an accuracy of 80%"
+            " in the binary classification of Alzheimer's Disease patients and cognitively"
+            " healthy normal control.")
+        st.write("")
+        st.title("Classification")
+        st.write("Choose to classify between Normal Control vs Alzhiemer's Disease"
+                 " or Mild Cognitive Impairment vs Alzeihmer's Disease")
+        st.write("")
+
+        status = st.radio("Select Classification Task: ", ('NC vs AD', 'MCI vs AD'))
+
+    if status == 'NC vs AD':
+        st.title("Normal Control vs. Alzheimer's Disease")
+        upload_box('nc_ad')
+    else:
+        st.title("Mild Cognitively Impaired vs. Alzheimer's Disease")
+        upload_box('mci_ad')
 
 
 # Upload box allows the user to upload a .nii image
@@ -47,7 +61,6 @@ def upload_box(class_type):
 
     if uploaded_file is not None:
         img = read_nifti_file(path + uploaded_file.name)
-
         st.write("Shape of image: ", img.shape)
         slice1 = img[55, :, :]
         slice2 = img[:, 55, :]
@@ -57,16 +70,31 @@ def upload_box(class_type):
 
         # Plot slices
         st.title("Axial, Coronal, and Sagittal Slices")
-        st.pyplot(show_slices([slice1, slice2, slice3]))
+        st.write("Below is the three-axial slices within the 3D image. Each slice is taken from the middle section of "
+                 "brain within each plane. In order from left to right below:")
+        st.write("Axial Plane (Above head looking down)")
+        st.write("Coronal Plane (Face forward looking to the back)")
+        st.write("Sagittal Plane (Side of the head)")
+        st.pyplot(show_slices([slice3, slice2, slice1]))
 
         # Write gif to file then show_gif()
-        gif2nif.write_gif_pseudocolor(path + uploaded_file.name, size=1.35, colormap='gist_rainbow')
-        st.title("GIF Brain Traversal")
-        show_gif(path + uploaded_file.name.replace('.nii', '_gist_rainbow.gif'))
+        gif2nif.write_gif_pseudocolor(path + uploaded_file.name, size=1.3, colormap='gist_rainbow')
 
-        # Write prediction
-        st.title("Prediction")
-        st.write(import_and_predict(img, class_type))
+        row0_spacer1, row0_1, row0_spacer2, row0_2, row0_spacer3 = st.beta_columns(
+            (.1, 1, .1, 1, .1))
+
+        with row0_1, _lock:
+            st.title("GIF Brain Traversal")
+            st.write("Traverses through the brain within each plane")
+            show_gif(path + uploaded_file.name.replace('.nii', '_gist_rainbow.gif'))
+
+            # Write prediction
+            st.title("Prediction")
+            st.write(model.import_and_predict(img, class_type))
+
+        with row0_2, _lock:
+            img = nib.load(path + uploaded_file.name)
+            head = img.header
 
 
 # Reads in a nifti file using nibabel
@@ -85,29 +113,6 @@ def show_slices(slices):
         axes[i].imshow(slice.T, cmap="gist_rainbow", origin="lower")
 
 
-def plot_slices(num_rows, num_columns, width, height, image_data):
-    image_data = np.rot90(np.array(image_data))
-    image_data = np.transpose(image_data)
-    image_data = np.reshape(image_data, (num_rows, num_columns, width, height))
-    rows_data, columns_data = image_data.shape[0], image_data.shape[1]
-    heights = [slc[0].shape[0] for slc in image_data]
-    widths = [slc.shape[1] for slc in image_data[0]]
-    fig_width = 12.0
-    fig_height = fig_width * sum(heights) / sum(widths)
-    f, axarr = plt.subplots(
-        rows_data,
-        columns_data,
-        figsize=(fig_width, fig_height),
-        gridspec_kw={"height_ratios": heights},
-    )
-    for i in range(rows_data):
-        for j in range(columns_data):
-            axarr[i, j].imshow(image_data[i][j], cmap="Blues")
-            axarr[i, j].axis("off")
-    plt.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
-    plt.show()
-
-
 # Displays a gif of the image that moves through the entire brain
 def show_gif(filename):
     file_ = open(filename, "rb")
@@ -119,8 +124,6 @@ def show_gif(filename):
         f'<img src="data:image/gif;base64,{data_url}" alt="brain gif">',
         unsafe_allow_html=True,
     )
-
-
 ######################################################################################
 
 # DATA PROCESSING
@@ -173,80 +176,6 @@ def process_scan(image):
     volume = resize_volume(image)
     volume = normalize(volume)
     return volume
-
-
-######################################################################################
-
-# CNN MODEL
-
-######################################################################################
-
-# Loads the model and makes a single prediction on the import image
-def import_and_predict(image, class_type):
-    def nc_ad():
-        model = load_model('E:/Classifications/1-9-classification(80%)/classification.h5')
-        img = np.array(image)
-        prediction = model.predict(np.expand_dims(img, axis=0))
-        scores = [1 - prediction[0], prediction[0]]
-
-        class_names = ["Normal", "AD"]
-        for score, name in zip(scores, class_names):
-            st.write(
-                "This model is %.2f percent confident the MRI scan is %s"
-                % ((100 * score), name)
-            )
-
-    def mci_ad():
-        model = load_model('E:/Classifications/1-9-classification(80%)/classification.h5')
-        img = np.array(image)
-        prediction = model.predict(np.expand_dims(img, axis=0))
-        scores = [1 - prediction[0], prediction[0]]
-
-        class_names = ["MCI", "AD"]
-        for score, name in zip(scores, class_names):
-            st.write(
-                "This model is %.2f percent confident the MRI scan is %s"
-                % ((100 * score), name)
-            )
-
-    if class_type == "nc_ad":
-        nc_ad()
-    else:
-        mci_ad()
-
-
-# Implements the CNN model
-def get_model():
-    inputs = keras.Input((121, 145, 121, 1))
-    conv1 = Conv3D(filters=32, kernel_size=(3, 3, 3), activation="relu")(inputs)
-    max_pool1 = MaxPool3D(pool_size=(2, 2, 2))(conv1)
-    batch_norm1 = BatchNormalization()(max_pool1)
-    dropout1 = Dropout(0.3)(batch_norm1)
-
-    # Layer 2
-    conv2 = Conv3D(filters=64, kernel_size=(3, 3, 3), activation="relu")(dropout1)
-    max_pool2 = MaxPool3D(pool_size=(2, 2, 2))(conv2)
-    batch_norm2 = BatchNormalization()(max_pool2)
-
-    # Layer 3
-    conv3 = Conv3D(filters=128, kernel_size=(3, 3, 3), activation="relu")(batch_norm2)
-    max_pool3 = MaxPool3D(pool_size=(2, 2, 2))(conv3)
-    batch_norm3 = BatchNormalization()(max_pool3)
-    dropout2 = Dropout(0.3)(batch_norm3)
-
-    conv4 = Conv3D(filters=256, kernel_size=(3, 3, 3), activation="relu")(dropout2)
-    max_pool4 = MaxPool3D(pool_size=(2, 2, 2))(conv4)
-    batch_norm4 = BatchNormalization()(max_pool4)
-
-    # Output Layer
-    global_avg_pool = GlobalAveragePooling3D()(batch_norm4)
-    dense = Dense(units=512, activation="relu")(global_avg_pool)
-    dropout5 = Dropout(0.4)(dense)
-
-    output = layers.Dense(units=1, activation="sigmoid")(dropout5)
-    model_output = Model(inputs, output, name="alz_cnn")
-
-    return model_output
 
 
 if __name__ == '__main__':
