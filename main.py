@@ -9,7 +9,9 @@ from gif import core as gif2nif
 import model
 from nilearn import plotting, datasets
 from matplotlib.backends.backend_agg import RendererAgg
-
+from nilearn import plotting
+from nilearn.regions import connected_regions
+from nilearn.image import threshold_img
 from nilearn.regions import RegionExtractor
 from nilearn import plotting
 from nilearn.image import index_img
@@ -95,7 +97,7 @@ def upload_box(class_type):
             st.write(model.import_and_predict(img, class_type))
 
         with row0_2, _lock:
-            st.pyplot(plot_roi(path + uploaded_file.name))
+            st.title("")
 
 
 # Reads in a nifti file using nibabel
@@ -133,6 +135,21 @@ def stat_map(img):
 
 def plot_roi(img):
     plotting.plot_roi(img)
+
+
+def anat_roi(path):
+    with st.spinner("Loading..."):
+        threshold_percentile_img = threshold_img(
+            path, threshold='94%',
+            copy=False)
+        regions_percentile_img, index = connected_regions(threshold_percentile_img,
+                                                          min_region_size=1500)
+        title = ("ROIs using percentile thresholding. "
+                 "\n Each ROI in same color is an extracted region")
+        plotting.plot_prob_atlas(regions_percentile_img,
+                                 bg_img=path,
+                                 view_type='contours', display_mode='z',
+                                 title=title)
 
 ######################################################################################
 
