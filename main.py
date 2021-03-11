@@ -72,13 +72,15 @@ def upload_box(class_type):
         st.title("Axial, Coronal, and Sagittal Slices")
         st.write("Below is the three-axial slices within the 3D image. Each slice is taken from the middle section of "
                  "brain within each plane. In order from left to right below:")
-        st.write("Axial Plane (Above head looking down)")
         st.write("Coronal Plane (Face forward looking to the back)")
         st.write("Sagittal Plane (Side of the head)")
-        st.pyplot(show_slices([slice3, slice2, slice1]))
+        st.write("Axial Plane (Above head looking down)")
+
+        #st.pyplot(show_slices([slice3, slice2, slice1]))
+        st.pyplot(stat_map(path + uploaded_file.name))
 
         # Write gif to file then show_gif()
-        gif2nif.write_gif_pseudocolor(path + uploaded_file.name, size=1.3, colormap='gist_rainbow')
+        gif2nif.write_gif_pseudocolor(path + uploaded_file.name, size=1.1, colormap='gist_rainbow')
 
         row0_spacer1, row0_1, row0_spacer2, row0_2, row0_spacer3 = st.beta_columns(
             (.1, 1, .1, 1, .1))
@@ -93,8 +95,7 @@ def upload_box(class_type):
             st.write(model.import_and_predict(img, class_type))
 
         with row0_2, _lock:
-            img = nib.load(path + uploaded_file.name)
-            head = img.header
+            st.pyplot(plot_roi(path + uploaded_file.name))
 
 
 # Reads in a nifti file using nibabel
@@ -124,6 +125,15 @@ def show_gif(filename):
         f'<img src="data:image/gif;base64,{data_url}" alt="brain gif">',
         unsafe_allow_html=True,
     )
+
+
+def stat_map(img):
+    plotting.plot_stat_map(img)
+
+
+def plot_roi(img):
+    plotting.plot_roi(img)
+
 ######################################################################################
 
 # DATA PROCESSING

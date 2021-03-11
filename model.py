@@ -28,7 +28,7 @@ def import_and_predict(image, class_type):
             )
 
     def mci_ad():
-        model = load_model('E:/classification.h5')
+        model = load_model('E:/Classifications/1-9-classification(80%)/classification.h5')
         img = np.array(image)
         prediction = model.predict(np.expand_dims(img, axis=0))
         scores = [1 - prediction[0], prediction[0]]
