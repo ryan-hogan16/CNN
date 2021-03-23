@@ -1,15 +1,10 @@
-import base64
 import os
 import random
 import nibabel as nib
-import numpy as np
 import streamlit as st
-import tensorflow
 from matplotlib.backends.backend_agg import RendererAgg
 from nilearn import plotting
-from scipy import ndimage
 import model
-import gif.core as gif2nif
 
 path = 'test_images/'
 _lock = RendererAgg.lock
@@ -49,22 +44,21 @@ def main():
 
 
 # Upload box allows the user to upload a .nii image
-# The image will be displayed between all axis as
-#  well as a gif of the image slices moves through
-#  the entire brain
+# Each axis of the brain will be displayed
 def start(class_type):
     st.write("Choose from the sample dataset to generate a prediction")
 
     if class_type == 'nc_ad':
         label = st.multiselect('Select Label', ("Alzheimer's Disease", 'Normal Control'))
+
     else:
         label = st.multiselect('Select Label', ("Alzheimer's Disease", 'Mild Cognitively Impaired'))
 
     if label:
         file = get_test_images(label)
         random_image = random.choice(os.listdir(file))
-        st.write("Label: " + label[0])
         st.write(random_image)
+        st.write("Label: " + label[0])
         display_results(file + random_image, class_type)
 
 
@@ -88,27 +82,19 @@ def display_results(img_file, class_type):
 
         st.pyplot(stat_map(img_file))
 
-        #st.title("GIF Brain Traversal")
-        #st.write("Traverses through the brain within each plane")
 
-        #gif_path = img_file.replace('/AD/', '/gifs/')
-        #gif2nif.write_gif_pseudocolor(img_file, size=1.3, colormap='hot_black_bone_r')
-        #gif_path = gif_path.replace('.nii', '_hot_black_bone_r.gif')
-        #show_gif(img_file)
-
-
+# Returns the path for the specified image label
 def get_test_images(label):
-    path = 'test_images/'
+    test_path = 'test_images/'
 
-    for x in label:
-        if x == "Alzheimers Disease":
-            path = path + 'AD/'
-        elif x == 'Healthy Control':
-            path = path + 'HC/'
-        else:
-            path = path + 'MCI/'
+    if label[0] == "Alzheimer's Disease":
+        return test_path + 'AD/'
 
-    return path
+    elif label[0] == 'Normal Control':
+        return test_path + 'HC/'
+
+    elif label[0] == 'Mild Cognitively Impaired':
+        return test_path + 'MCI/'
 
 
 # Reads in a nifti file using nibabel
@@ -116,79 +102,11 @@ def get_test_images(label):
 def read_nifti_file(filepath):
     scan = nib.load(filepath)
     scan = scan.get_fdata()
-    scan = process_scan(scan)
     return scan
-
-
-# Displays a gif of the image that moves through the entire brain
-def show_gif(filename):
-    file_ = open(filename, "rb")
-    contents = file_.read()
-    data_url = base64.b64encode(contents).decode("utf-8")
-    file_.close()
-
-    st.markdown(
-        f'<img src="data:image/gif;base64,{data_url}" alt="brain gif">',
-        unsafe_allow_html=True,
-    )
 
 
 def stat_map(img):
     plotting.plot_stat_map(img)
-
-
-########################################
-
-# DATA PROCESSING
-
-######################################################################################
-
-
-# Normalized the data between min and max
-# Returns volume as float32
-def normalize(volume):
-    mi = np.min(volume)
-    ma = np.max(volume)
-    volume = (volume - mi) / (ma - mi)
-    volume = volume.astype("float32")
-    return volume
-
-
-# Resize the image to shape (121, 145, 121)
-def resize_volume(img):
-    desired_depth = 121
-    desired_width = 121
-    desired_height = 145
-    # Get current depth
-    current_depth = img.shape[-1]
-    current_width = img.shape[0]
-    current_height = img.shape[1]
-    # Compute depth factor
-    depth = current_depth / desired_depth
-    width = current_width / desired_width
-    height = current_height / desired_height
-    depth_factor = 1 / depth
-    width_factor = 1 / width
-    height_factor = 1 / height
-
-    # Resize across z-axis
-    img = ndimage.zoom(img, (width_factor, height_factor, depth_factor), order=1)
-    return img
-
-
-# Expand the dimension axis to 3 using tensorflow.expand_dims()
-# Flow from tensor slices to get the slices of the array
-def image_preprocessing(image):
-    volume = tensorflow.expand_dims(image, axis=3)
-    volume = tensorflow.data.Dataset.from_tensor_slices(volume)
-    return volume
-
-
-# Process the scans by resizing and normalizing the image
-def process_scan(image):
-    volume = resize_volume(image)
-    volume = normalize(volume)
-    return volume
 
 
 if __name__ == '__main__':

@@ -20,7 +20,7 @@ def import_and_predict(image, class_type):
         prediction = model.predict(np.expand_dims(img, axis=0))
         scores = [1 - prediction[0], prediction[0]]
 
-        class_names = ["Normal", "AD"]
+        class_names = ["Normal Control", "Alzheimer's Disease"]
         for score, name in zip(scores, class_names):
             st.write(
                 "This model is %.2f percent confident the MRI scan is %s"
