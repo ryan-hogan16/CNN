@@ -1,23 +1,17 @@
 import base64
-import matplotlib.pyplot as plt
+import os
+import random
 import nibabel as nib
 import numpy as np
 import streamlit as st
 import tensorflow
-from scipy import ndimage
-from gif import core as gif2nif
-import model
-from nilearn import plotting, datasets
 from matplotlib.backends.backend_agg import RendererAgg
 from nilearn import plotting
-from nilearn.regions import connected_regions
-from nilearn.image import threshold_img
-from nilearn.regions import RegionExtractor
-from nilearn import plotting
-from nilearn.image import index_img
-from nilearn.plotting import find_xyz_cut_coords
+from scipy import ndimage
+import model
+import gif.core as gif2nif
 
-path = 'E:/AD/'
+path = 'test_images/'
 _lock = RendererAgg.lock
 
 
@@ -48,27 +42,41 @@ def main():
 
     if status == 'NC vs AD':
         st.title("Normal Control vs. Alzheimer's Disease")
-        upload_box('nc_ad')
+        start('nc_ad')
     else:
         st.title("Mild Cognitively Impaired vs. Alzheimer's Disease")
-        upload_box('mci_ad')
+        start('mci_ad')
 
 
 # Upload box allows the user to upload a .nii image
 # The image will be displayed between all axis as
 #  well as a gif of the image slices moves through
 #  the entire brain
-def upload_box(class_type):
-    uploaded_file = st.file_uploader("Choose a image file", type="nii")
+def start(class_type):
+    st.write("Choose from the sample dataset to generate a prediction")
 
-    if uploaded_file is not None:
-        img = read_nifti_file(path + uploaded_file.name)
+    if class_type == 'nc_ad':
+        label = st.multiselect('Select Label', ("Alzheimer's Disease", 'Normal Control'))
+    else:
+        label = st.multiselect('Select Label', ("Alzheimer's Disease", 'Mild Cognitively Impaired'))
+
+    if label:
+        file = get_test_images(label)
+        random_image = random.choice(os.listdir(file))
+        st.write("Label: " + label[0])
+        st.write(random_image)
+        display_results(file + random_image, class_type)
+
+
+def display_results(img_file, class_type):
+    if img_file is not None:
+        img = read_nifti_file(img_file)
         st.write("Shape of image: ", img.shape)
-        slice1 = img[55, :, :]
-        slice2 = img[:, 55, :]
-        slice3 = img[:, :, 55]
 
         st.set_option('deprecation.showPyplotGlobalUse', False)
+
+        st.title("Model Prediction")
+        st.write(model.import_and_predict(img, class_type))
 
         # Plot slices
         st.title("Axial, Coronal, and Sagittal Slices")
@@ -78,26 +86,29 @@ def upload_box(class_type):
         st.write("Sagittal Plane (Side of the head)")
         st.write("Axial Plane (Above head looking down)")
 
-        #st.pyplot(show_slices([slice3, slice2, slice1]))
-        st.pyplot(stat_map(path + uploaded_file.name))
+        st.pyplot(stat_map(img_file))
 
-        # Write gif to file then show_gif()
-        gif2nif.write_gif_pseudocolor(path + uploaded_file.name, size=1.1, colormap='gist_rainbow')
+        #st.title("GIF Brain Traversal")
+        #st.write("Traverses through the brain within each plane")
 
-        row0_spacer1, row0_1, row0_spacer2, row0_2, row0_spacer3 = st.beta_columns(
-            (.1, 1, .1, 1, .1))
+        #gif_path = img_file.replace('/AD/', '/gifs/')
+        #gif2nif.write_gif_pseudocolor(img_file, size=1.3, colormap='hot_black_bone_r')
+        #gif_path = gif_path.replace('.nii', '_hot_black_bone_r.gif')
+        #show_gif(img_file)
 
-        with row0_1, _lock:
-            st.title("GIF Brain Traversal")
-            st.write("Traverses through the brain within each plane")
-            show_gif(path + uploaded_file.name.replace('.nii', '_gist_rainbow.gif'))
 
-            # Write prediction
-            st.title("Prediction")
-            st.write(model.import_and_predict(img, class_type))
+def get_test_images(label):
+    path = 'test_images/'
 
-        with row0_2, _lock:
-            st.title("")
+    for x in label:
+        if x == "Alzheimers Disease":
+            path = path + 'AD/'
+        elif x == 'Healthy Control':
+            path = path + 'HC/'
+        else:
+            path = path + 'MCI/'
+
+    return path
 
 
 # Reads in a nifti file using nibabel
@@ -107,13 +118,6 @@ def read_nifti_file(filepath):
     scan = scan.get_fdata()
     scan = process_scan(scan)
     return scan
-
-
-# Displays the three axis slices (coronal, sagittal, and axial)
-def show_slices(slices):
-    fig, axes = plt.subplots(1, len(slices))
-    for i, slice in enumerate(slices):
-        axes[i].imshow(slice.T, cmap="gist_rainbow", origin="lower")
 
 
 # Displays a gif of the image that moves through the entire brain
@@ -133,25 +137,7 @@ def stat_map(img):
     plotting.plot_stat_map(img)
 
 
-def plot_roi(img):
-    plotting.plot_roi(img)
-
-
-def anat_roi(path):
-    with st.spinner("Loading..."):
-        threshold_percentile_img = threshold_img(
-            path, threshold='94%',
-            copy=False)
-        regions_percentile_img, index = connected_regions(threshold_percentile_img,
-                                                          min_region_size=1500)
-        title = ("ROIs using percentile thresholding. "
-                 "\n Each ROI in same color is an extracted region")
-        plotting.plot_prob_atlas(regions_percentile_img,
-                                 bg_img=path,
-                                 view_type='contours', display_mode='z',
-                                 title=title)
-
-######################################################################################
+########################################
 
 # DATA PROCESSING
 

@@ -2,7 +2,7 @@
 
 from gif import core as gif2nif
 
-filename = 'E:/AD/wmADNI_002_S_0619_MR_MPR__GradWarp__N3__Scaled_Br_20070717184209073_S24022_I60451.nii'
+filename = ''
 
 # Create a normal grayscale gif.
 gif2nif.write_gif_normal(filename)
