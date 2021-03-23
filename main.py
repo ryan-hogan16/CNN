@@ -13,7 +13,7 @@ _lock = RendererAgg.lock
 def main():
     # SETTING PAGE CONFIG TO WIDE MODE
     st.set_page_config(
-        page_title="Alzheimer's Detection", page_icon='http://clipart-library.com/img/2101816.png',
+        page_title="Alzheimer's Detection",
         layout="wide"
     )
 
