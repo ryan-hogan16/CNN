@@ -18,7 +18,7 @@ def main():
     )
 
     st.title("Alzheimer's Disease Classification by 3D CNN")
-    st.write("Pick an image from the left. You'll be able to view the image and see the prediction.")
+    st.write("Pick an image below. You'll be able to view the image and see the prediction.")
     st.write("Only accepts .nii (NIFTI) scans.")
 
     with st.sidebar:
