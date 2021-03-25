@@ -14,12 +14,13 @@ def main():
     # SETTING PAGE CONFIG TO WIDE MODE
     st.set_page_config(
         page_title="Alzheimer's Detection",
-        layout="wide"
+        layout="wide",
+        initial_sidebar_state="expanded",
+        page_icon='https://www.flaticon.com/svg/vstatic/svg/882/882998.svg?token=exp=1616624912~hmac=12661e4152e7ff72c27d5bc8fa5aa39f'
     )
 
-    st.title("Alzheimer's Disease Classification by 3D CNN")
-    st.write("Pick an image below. You'll be able to view the image and see the prediction.")
-    st.write("Only accepts .nii (NIFTI) scans.")
+    st.write("# Alzheimer's Disease Classification by 3D CNN 🧠")
+    st.write("Pick an image below. The prediction will be displayed along with the image.")
 
     with st.sidebar:
         st.info(
@@ -28,18 +29,23 @@ def main():
             " in the binary classification of Alzheimer's Disease patients and cognitively"
             " healthy normal control.")
         st.write("")
-        st.title("Classification")
-        st.write("Choose to classify between Normal Control vs Alzhiemer's Disease"
-                 " or Mild Cognitive Impairment vs Alzeihmer's Disease")
+        st.write("#### Classification")
+        st.write("Choose to classify between Normal Control vs Alzheimer's Disease"
+                 " or Mild Cognitive Impairment vs Alzheimer's Disease")
         st.write("")
 
         status = st.radio("Select Classification Task: ", ('NC vs AD', 'MCI vs AD'))
 
+        st.write('\n')
+        st.write('\n')
+        st.write('#### Github Repository')
+        st.markdown('https://github.com/ryan-hogan16/CNN')
+
     if status == 'NC vs AD':
-        st.title("Normal Control vs. Alzheimer's Disease")
+        st.write("# Normal Control vs. Alzheimer's Disease")
         start('nc_ad')
     else:
-        st.title("Mild Cognitively Impaired vs. Alzheimer's Disease")
+        st.write("## Mild Cognitively Impaired vs. Alzheimer's Disease")
         start('mci_ad')
 
 
@@ -57,27 +63,27 @@ def start(class_type):
     if label:
         file = get_test_images(label)
         random_image = random.choice(os.listdir(file))
-        st.write(random_image)
+        st.write("File: " + random_image)
         st.write("Label: " + label[0])
-        display_results(file + random_image, class_type)
+
+        with st.spinner("Loading...⏳"):
+            display_results(file + random_image, class_type)
 
 
 def display_results(img_file, class_type):
     if img_file is not None:
         img = read_nifti_file(img_file)
-        st.write("Shape of image: ", img.shape)
-
         st.set_option('deprecation.showPyplotGlobalUse', False)
 
-        st.title("Model Prediction")
+        st.write("# Model Prediction")
         st.write(model.import_and_predict(img, class_type))
 
         # Plot slices
-        st.title("Axial, Coronal, and Sagittal Slices")
+        st.write("# Axial, Coronal, and Sagittal Slices")
         st.write("Below is the three-axial slices within the 3D image. Each slice is taken from the middle section of "
                  "brain within each plane. In order from left to right below:")
         st.write("Coronal Plane (Face forward looking to the back)")
-        st.write("Sagittal Plane (Side of the head)")
+        st.write("Sagittal Plane (Side of the head looking through)")
         st.write("Axial Plane (Above head looking down)")
 
         st.pyplot(stat_map(img_file))
@@ -106,7 +112,7 @@ def read_nifti_file(filepath):
 
 
 def stat_map(img):
-    plotting.plot_stat_map(img)
+    plotting.plot_stat_map(img, colorbar=False, cmap="hot_black_bone_r")
 
 
 if __name__ == '__main__':

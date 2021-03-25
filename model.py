@@ -21,11 +21,18 @@ def import_and_predict(image, class_type):
         scores = [1 - prediction[0], prediction[0]]
 
         class_names = ["Normal Control", "Alzheimer's Disease"]
+        temp_score = 0
+        temp_name = ''
+
         for score, name in zip(scores, class_names):
-            st.write(
-                "This model is %.2f percent confident the MRI scan is %s"
-                % ((100 * score), name)
-            )
+            if 100 * score > 50:
+                temp_name = name
+                temp_score = score
+
+        st.write(
+            "The model is %.2f percent confident the MRI scan is %s"
+            % ((100 * temp_score), temp_name)
+        )
 
     def mci_ad():
         model = load_model('models/classification.h5')
@@ -34,11 +41,18 @@ def import_and_predict(image, class_type):
         scores = [1 - prediction[0], prediction[0]]
 
         class_names = ["MCI", "AD"]
+        temp_score = 0
+        temp_name = ''
+
         for score, name in zip(scores, class_names):
-            st.write(
-                "This model is %.2f percent confident the MRI scan is %s"
-                % ((100 * score), name)
-            )
+            if 100 * score > 50:
+                temp_name = name
+                temp_score = score
+
+        st.write(
+            "The model is %.2f percent confident the MRI scan is %s"
+            % ((100 * temp_score), temp_name)
+        )
 
     if class_type == "nc_ad":
         nc_ad()
