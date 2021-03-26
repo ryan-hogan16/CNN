@@ -106,6 +106,7 @@ def get_model():
     return model_output
 
 
+# Displays a pie chart for the two classes and their predictions
 def pie_c(score, class_names, high_label):
     high_score = 0
     low_score = 0
