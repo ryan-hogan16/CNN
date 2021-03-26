@@ -82,10 +82,10 @@ def display_results(img_file, class_type):
         # Plot slices
         st.write("# Axial, Coronal, and Sagittal Slices")
         st.write("Below is the three-axial slices within the 3D image. Each slice is taken from the middle section of "
-                 "brain within each plane. In order from left to right below:")
-        st.write("Coronal Plane (Face forward looking to the back)")
-        st.write("Sagittal Plane (Side of the head looking through)")
-        st.write("Axial Plane (Above head looking down)")
+                 "brain within each plane. In order from left to right:")
+        st.write("Coronal Plane: Face forward looking through head.")
+        st.write("Sagittal Plane: Side of the head looking through.")
+        st.write("Axial Plane: Above head looking down.")
 
         st.pyplot(stat_map(img_file))
 

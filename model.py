@@ -6,6 +6,7 @@ import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
 
+
 ######################################################################################
 
 # CNN MODEL
@@ -35,8 +36,13 @@ def import_and_predict(image, class_type):
             st.set_option('deprecation.showPyplotGlobalUse', False)
             st.pyplot(pie_c(temp_score, class_names, temp_name))
 
+        with col2:
+            st.write("#### Probabilistic Prediction")
+            st.text_area('', "This is a probability prediction where, given a new instance, the model returns the "
+                             "probability for each outcome between two classes, Normal Control and Alzheimer's Disease.")
+
         st.write(
-            "### The model is %.2f percent confident the MRI scan is %s"
+            "#### The model is %.2f percent confident the MRI scan is %s"
             % ((100 * temp_score), temp_name)
         )
 
@@ -60,8 +66,14 @@ def import_and_predict(image, class_type):
             st.set_option('deprecation.showPyplotGlobalUse', False)
             st.pyplot(pie_c(temp_score, class_names, temp_name))
 
+        with col2:
+            st.write("#### Probabilistic Prediction")
+            st.text_area('', "This is a probability prediction where, given a new instance, the model returns the "
+                             "probability for each outcome between two classes, Mild Cognitive Impairment "
+                             "and Alzheimer's Disease.")
+
         st.write(
-            "The model is %.2f percent confident the MRI scan is %s"
+            "#### The model is %.2f percent confident the MRI scan is %s"
             % ((100 * temp_score), temp_name)
         )
 
@@ -122,12 +134,9 @@ def pie_c(score, class_names, high_label):
         labels = [high_label, class_names[0]]
 
     sizes = [high_score, low_score]
-    colors = ['yellowgreen', 'lightcoral']
+    colors = ['lightskyblue', 'lightcoral']
 
-    if high_score > low_score:
-        explode = (0.1, 0)  # explode 1st slice
-    else:
-        explode = (0, 0.1)
+    explode = (0.1, 0)
 
     # Plot
     plt.pie(sizes, explode=explode, labels=labels, colors=colors,
