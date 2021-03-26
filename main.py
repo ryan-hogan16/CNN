@@ -5,6 +5,7 @@ import streamlit as st
 from matplotlib.backends.backend_agg import RendererAgg
 from nilearn import plotting
 import model
+import matplotlib.pyplot as plt
 
 path = 'test_images/'
 _lock = RendererAgg.lock
@@ -45,7 +46,7 @@ def main():
         st.write("# Normal Control vs. Alzheimer's Disease")
         start('nc_ad')
     else:
-        st.write("## Mild Cognitively Impaired vs. Alzheimer's Disease")
+        st.write("# Mild Cognitively Impaired vs. Alzheimer's Disease")
         start('mci_ad')
 
 
@@ -109,6 +110,27 @@ def read_nifti_file(filepath):
     scan = nib.load(filepath)
     scan = scan.get_fdata()
     return scan
+
+def pie_chart(score):
+    # Data to plot
+    x = score
+    y = 100 - score
+
+    labels = 'NC', 'AD'
+    sizes = [10,10]
+    colors = ['yellowgreen', 'lightcoral']
+
+    if x > y:
+        explode = (0.1, 0)
+    else:
+        explode = (0, 0.1)
+
+    # Plot
+    plt.pie(sizes, explode=explode, labels=labels, colors=colors,
+            autopct='%1.1f%%', shadow=True, startangle=140)
+
+    plt.axis('equal')
+    plt.show()
 
 
 def stat_map(img):

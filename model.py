@@ -4,6 +4,7 @@ from tensorflow.keras.layers import Conv3D, MaxPool3D, BatchNormalization, Globa
 from tensorflow.python.keras.models import load_model
 import numpy as np
 import streamlit as st
+import matplotlib.pyplot as plt
 
 ######################################################################################
 
@@ -29,8 +30,13 @@ def import_and_predict(image, class_type):
                 temp_name = name
                 temp_score = score
 
+        col1, col2 = st.beta_columns(2)
+        with col1:
+            st.set_option('deprecation.showPyplotGlobalUse', False)
+            st.pyplot(pie_c(temp_score, class_names, temp_name))
+
         st.write(
-            "The model is %.2f percent confident the MRI scan is %s"
+            "### The model is %.2f percent confident the MRI scan is %s"
             % ((100 * temp_score), temp_name)
         )
 
@@ -40,7 +46,7 @@ def import_and_predict(image, class_type):
         prediction = model.predict(np.expand_dims(img, axis=0))
         scores = [1 - prediction[0], prediction[0]]
 
-        class_names = ["MCI", "AD"]
+        class_names = ["Mild Cognitive Impairment", "Alzheimer's Disease"]
         temp_score = 0
         temp_name = ''
 
@@ -48,6 +54,11 @@ def import_and_predict(image, class_type):
             if 100 * score > 50:
                 temp_name = name
                 temp_score = score
+
+        col1, col2 = st.beta_columns(2)
+        with col1:
+            st.set_option('deprecation.showPyplotGlobalUse', False)
+            st.pyplot(pie_c(temp_score, class_names, temp_name))
 
         st.write(
             "The model is %.2f percent confident the MRI scan is %s"
@@ -93,3 +104,33 @@ def get_model():
     model_output = Model(inputs, output, name="alz_cnn")
 
     return model_output
+
+
+def pie_c(score, class_names, high_label):
+    high_score = 0
+    low_score = 0
+    labels = ""
+
+    for k in score:
+        high_score = k * 100
+        low_score = 100 - high_score
+
+    if class_names[0] == high_label:
+        labels = [high_label, class_names[1]]
+    elif class_names[1] == high_label:
+        labels = [high_label, class_names[0]]
+
+    sizes = [high_score, low_score]
+    colors = ['yellowgreen', 'lightcoral']
+
+    if high_score > low_score:
+        explode = (0.1, 0)  # explode 1st slice
+    else:
+        explode = (0, 0.1)
+
+    # Plot
+    plt.pie(sizes, explode=explode, labels=labels, colors=colors,
+            autopct='%1.2f%%', shadow=True, startangle=20)
+    plt.title("Confidence between two classes")
+    plt.legend(title="Two Classes:")
+    plt.show()
