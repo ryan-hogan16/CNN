@@ -5,7 +5,7 @@ from tensorflow.python.keras.models import load_model
 import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
-
+from sklearn.metrics import confusion_matrix, accuracy_score
 
 ######################################################################################
 
@@ -72,10 +72,14 @@ def import_and_predict(image, class_type):
                              "probability for each outcome between two classes, Mild Cognitive Impairment "
                              "and Alzheimer's Disease.")
 
+
+
         st.write(
             "#### The model is %.2f percent confident the MRI scan is %s"
             % ((100 * temp_score), temp_name)
         )
+
+
 
     if class_type == "nc_ad":
         nc_ad()

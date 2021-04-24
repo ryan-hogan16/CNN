@@ -26,29 +26,31 @@ def main():
     with st.sidebar:
         st.info(
             "This project was built using a Convolution Neural Network (CNN) to classify MRI "
-            "images as normal or abnormal. The trained model used yields an accuracy of 80%"
+            "images as normal or abnormal. The trained model used yields an accuracy of 79%"
             " in the binary classification of Alzheimer's Disease patients and cognitively"
             " healthy normal control.")
         st.write("")
         st.write("#### Classification")
-        st.write("Choose to classify between Normal Control vs Alzheimer's Disease"
-                 " or Mild Cognitive Impairment vs Alzheimer's Disease")
-        st.write("")
+        #st.write("Choose to classify between Normal Control vs Alzheimer's Disease"
+        #         " or Mild Cognitive Impairment vs Alzheimer's Disease")
+        #st.write("")
 
-        status = st.radio("Select Classification Task: ", ('NC vs AD', 'MCI vs AD'))
+        #status = st.radio("Select Classification Task: ", ('NC vs AD', 'MCI vs AD'))
 
         st.write('\n')
         st.write('\n')
         st.write('#### Github Repository')
         st.markdown('https://github.com/ryan-hogan16/CNN')
 
-    if status == 'NC vs AD':
-        st.write("# Normal Control vs. Alzheimer's Disease")
-        start('nc_ad')
-    else:
-        st.write("# Mild Cognitively Impaired vs. Alzheimer's Disease")
-        start('mci_ad')
+    # if status == 'NC vs AD':
+        #st.write("# Normal Control vs. Alzheimer's Disease")
+        #start('nc_ad')
+   # else:
+       # st.write("# Mild Cognitively Impaired vs. Alzheimer's Disease")
+       # start('mci_ad')
 
+    st.write("# Normal Control vs. Alzheimer's Disease")
+    start('nc_ad')
 
 # Upload box allows the user to upload a .nii image
 # Each axis of the brain will be displayed
