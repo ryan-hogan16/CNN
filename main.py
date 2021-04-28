@@ -21,7 +21,11 @@ def main():
     )
 
     st.write("# Alzheimer's Disease Classification by 3D CNN 🧠")
-    st.write("Pick an image below. The prediction will be displayed along with the image.")
+    st.write(" ")
+    st.write("##### This application was inspired by our published research listed below: ")
+    st.write(" ")
+    st.write("Hogan, R. and Christoforou C., 2021, “Alzheimer’s Detection through 3D Convolutional Neural Networks”, "
+             " \n International Florida Artificial Intelligence Research Society Conference (FLAIRS-34)")
 
     with st.sidebar:
         st.info(
@@ -30,7 +34,9 @@ def main():
             " in the binary classification of Alzheimer's Disease patients and cognitively"
             " healthy normal control.")
         st.write("")
-        st.write("#### Classification")
+
+        st.image("logos/neurolabimg1.png")
+        #st.write("#### Classification")
         #st.write("Choose to classify between Normal Control vs Alzheimer's Disease"
         #         " or Mild Cognitive Impairment vs Alzheimer's Disease")
         #st.write("")
