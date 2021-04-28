@@ -35,7 +35,7 @@ def main():
             " healthy normal control.")
         st.write("")
 
-        st.image("logos/neurolabimg1.png")
+        st.image("test_images/neurolabimg1.png")
         #st.write("#### Classification")
         #st.write("Choose to classify between Normal Control vs Alzheimer's Disease"
         #         " or Mild Cognitive Impairment vs Alzheimer's Disease")
